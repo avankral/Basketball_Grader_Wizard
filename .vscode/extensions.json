@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
+    "ms-toolsai.jupyter",
+    "GitHub.copilot",
+    "GitHub.copilot-chat",
+    "redhat.vscode-yaml",
+    "mikestead.dotenv",
+    "tamasfe.even-better-toml"
+  ]
+}

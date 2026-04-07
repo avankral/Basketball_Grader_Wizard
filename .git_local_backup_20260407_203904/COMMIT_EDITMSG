@@ -1,0 +1,5 @@
+Add caching module for team metrics and upload flow tests
+
+- Implemented a caching mechanism in `src/cache.py` to store computed metrics and strength of schedule for teams, improving performance by avoiding redundant calculations.
+- Added functions to retrieve cached data, compute metrics, and invalidate the cache.
+- Created unit tests in `tests/test_app_upload_flow.py` to ensure proper handling of upload processing conditions, preventing rerun loops when no file is uploaded or when the process button is not clicked.

@@ -1,0 +1,65 @@
+{
+  // Python Environment Auto-Activation
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.terminal.activateEnvironment": true,
+  
+  // Activate venv on terminal open
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell"
+    }
+  },
+  "terminal.integrated.env.windows": {
+    "VIRTUAL_ENV": "${workspaceFolder}/.venv"
+  },
+  
+  // Auto-select venv when opening project
+  "python.venvFolders": [".venv", "venv"],
+  "python.venvPath": "${workspaceFolder}",
+  
+  // Code formatting
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  
+  // Python formatting and linting
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.tabSize": 4,
+    "editor.rulers": [100]
+  },
+  
+  // Ruff configuration
+  "ruff.lint.args": ["--line-length=100"],
+  "ruff.format.args": ["--line-length=100"],
+  
+  // File associations
+  "files.associations": {
+    "*.yaml": "yaml",
+    "*.yml": "yaml",
+    ".env*": "dotenv"
+  },
+  
+  // Exclude patterns
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.pytest_cache": true,
+    ".ruff_cache": true
+  },
+  
+  // Search exclusions
+  "search.exclude": {
+    "**/.venv": true,
+    "**/node_modules": true
+  },
+  "workbench.colorCustomizations": {
+    "statusBar.noFolderBackground": "#411F4F",
+    "statusBar.noFolderForeground": "#FDFBFD"
+  }
+}

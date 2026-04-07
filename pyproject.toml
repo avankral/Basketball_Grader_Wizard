@@ -1,0 +1,57 @@
+[project]
+name = "basketball_grader_wizard"
+version = "0.1.0"
+description = "This project ingests weekly basketball results in xls format and coverts it into actionable recommendations for grading of basketball teams for boys and girls across multiple age levels it should be in a dashboard and have tables it should assess the data every week and provide recommendations for which teams show move up or go down a grade based on fairness this should be a profressional looking app and it is ok to to search the public internat for similar applications it should be feature rich"
+requires-python = ">=3.12,<3.14"
+readme = "README.md"
+
+dependencies = [
+    "python-dotenv>=1.0.0",
+    "streamlit>=1.30.0",
+    "plotly>=5.18.0",
+    "pandas>=2.0.0",
+    "pyarrow>=14.0.0",
+    "openpyxl>=3.1.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "ruff>=0.1", "pytest-cov>=4.0"]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "config*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+]
+ignore = [
+    "E501", # line too long (handled by formatter)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src", "config"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-v --tb=short"

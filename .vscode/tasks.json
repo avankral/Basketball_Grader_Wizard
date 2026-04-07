@@ -1,0 +1,76 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Setup: Create Virtual Environment",
+      "type": "shell",
+      "command": "$created = $false; if (Get-Command py -ErrorAction SilentlyContinue) { py -3.13 -m venv .venv; if ($LASTEXITCODE -eq 0) { $created = $true } }; if (-not $created -and (Get-Command py -ErrorAction SilentlyContinue)) { py -3.12 -m venv .venv; if ($LASTEXITCODE -eq 0) { $created = $true } }; if (-not $created) { python -c \"import sys; raise SystemExit(0 if ((3, 12) <= sys.version_info[:2] < (3, 14)) else 1)\"; if ($LASTEXITCODE -eq 0) { python -m venv .venv; $created = $true } }; if (-not $created) { throw 'Python 3.12 or 3.13 is required to create this virtual environment.' }; .venv\\Scripts\\python.exe -m pip install --upgrade pip; .venv\\Scripts\\python.exe -m pip install -e '.[dev]'",
+      "problemMatcher": [],
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Setup: Install Dependencies",
+      "type": "shell",
+      "command": ".venv\\Scripts\\python.exe -m pip install -e '.[dev]'",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Run: Streamlit App",
+      "type": "shell",
+      "command": ".venv\\Scripts\\python.exe -m streamlit run src/app.py",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Test: Run Pytest",
+      "type": "shell",
+      "command": ".venv\\Scripts\\python.exe -m pytest -v",
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Lint: Ruff Check",
+      "type": "shell",
+      "command": ".venv\\Scripts\\python.exe -m ruff check .",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Lint: Ruff Fix",
+      "type": "shell",
+      "command": ".venv\\Scripts\\python.exe -m ruff check --fix .; .venv\\Scripts\\python.exe -m ruff format .",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "New Project: Run Setup Wizard",
+      "type": "shell",
+      "command": "python setup_project.py",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      }
+    }
+  ]
+}
