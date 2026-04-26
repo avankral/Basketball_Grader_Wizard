@@ -1,6 +1,6 @@
 """KPI metric cards for the dashboard.
 
-Displays key performance indicators in themed cards.
+Displays key performance indicators in Ford Blue styled cards.
 """
 
 from __future__ import annotations
@@ -127,7 +127,7 @@ def render_team_summary_card(
             border_color = "#1C69D4"  # Accent blue
             icon = "👀"
         else:
-            border_color = "#00095B"  # Primary blue
+            border_color = "#00095B"  # Ford blue
             icon = "✅"
     else:
         border_color = "#00095B"

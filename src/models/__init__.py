@@ -9,6 +9,16 @@ from src.models.game_result import (
     TeamSeason,
     VarianceClass,
 )
+from src.models.matchup import (
+    ByeAssignment,
+    HighVarianceGame,
+    MatchupConfidence,
+    MatchupOutcome,
+    MatchupRecommendation,
+    MatchupStatus,
+    MatchupType,
+    RoundAnalysis,
+)
 from src.models.recommendation import (
     Confidence,
     Override,
@@ -24,6 +34,14 @@ __all__ = [
     "SheetInfo",
     "TeamSeason",
     "VarianceClass",
+    "ByeAssignment",
+    "HighVarianceGame",
+    "MatchupConfidence",
+    "MatchupOutcome",
+    "MatchupRecommendation",
+    "MatchupStatus",
+    "MatchupType",
+    "RoundAnalysis",
     "Confidence",
     "Override",
     "Recommendation",

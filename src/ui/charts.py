@@ -18,8 +18,8 @@ from src.grading.metrics import TeamMetrics
 from src.grading.strength_of_schedule import StrengthOfSchedule
 from src.models.game_result import ResultType, TeamSeason
 
-# Shared color palette
-PRIMARY_BLUE = "#00095B"
+# Ford color palette
+FORD_BLUE = "#00095B"
 ACCENT_BLUE = "#1C69D4"
 LIGHT_BLUE = "#E8F1FC"
 SUCCESS_GREEN = "#198754"
@@ -127,7 +127,7 @@ def create_grade_distribution_chart(
             z=matrix,
             x=grade_values,
             y=team_names,
-            colorscale=[[0, LIGHT_BLUE], [0.5, ACCENT_BLUE], [1, PRIMARY_BLUE]],
+            colorscale=[[0, LIGHT_BLUE], [0.5, ACCENT_BLUE], [1, FORD_BLUE]],
             text=[[f"{v}%" for v in row] for row in matrix],
             texttemplate="%{text}",
             textfont={"size": 10},
@@ -190,7 +190,7 @@ def create_sos_distribution_chart(
         size="Games Played",
         hover_data=["Team", "Blowout Wins", "Blowout Losses"],
         title="Strength of Schedule vs Win Rate",
-        color_discrete_sequence=[PRIMARY_BLUE, ACCENT_BLUE, SUCCESS_GREEN, WARNING_YELLOW, ERROR_RED],
+        color_discrete_sequence=[FORD_BLUE, ACCENT_BLUE, SUCCESS_GREEN, WARNING_YELLOW, ERROR_RED],
     )
 
     # Add reference lines
@@ -251,7 +251,7 @@ def create_win_loss_chart(teams: list[TeamSeason]) -> go.Figure:
             name="Blowout Wins",
             x=df["Team"],
             y=df["Blowout Wins"],
-            marker_color=PRIMARY_BLUE,
+            marker_color=FORD_BLUE,
         )
     )
 

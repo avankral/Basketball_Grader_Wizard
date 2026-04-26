@@ -1,21 +1,22 @@
-"""Shared Streamlit theme helpers.
+"""
+Ford Blue Theme — Streamlit CSS Styling
 
-Provides the app color palette and reusable layout components.
+Canonical Ford colour palette and CSS injection for Streamlit apps.
 
 Usage:
-    from src.styles import apply_app_theme
+    from src.styles import apply_ford_theme
 
-    apply_app_theme()  # Call once at app startup
+    apply_ford_theme()  # Call once at app startup
 """
 
 import streamlit as st
 
-# === Color Palette ===
+# === Ford Colour Palette ===
 
 # Primary colours
-PRIMARY_BLUE = "#00095B"
-ACCENT_BLUE = "#1C69D4"
-LIGHT_BLUE = "#E8F1FC"
+FORD_BLUE = "#00095B"
+FORD_ACCENT_BLUE = "#1C69D4"
+FORD_LIGHT_BLUE = "#E8F1FC"
 
 # Neutral colours
 WHITE = "#FFFFFF"
@@ -34,14 +35,14 @@ DARK_SIDEBAR = "#162447"
 
 # === CSS Templates ===
 
-APP_THEME_CSS = """
+FORD_BLUE_CSS = """
 <style>
-/* ===== App Theme ===== */
+/* ===== Ford Blue Theme ===== */
 
 /* Main container padding */
 .main { padding: 2rem; }
 
-/* Headers */
+/* Headers in Ford Blue */
 h1 {
     color: #00095B !important;
     font-weight: 600;
@@ -173,17 +174,17 @@ h2, h3 {
 """
 
 
-def apply_app_theme() -> None:
-    """Apply shared theme CSS to the Streamlit app.
+def apply_ford_theme() -> None:
+    """Apply Ford Blue theme CSS to the Streamlit app.
 
     Call this function once at the beginning of your app, typically
     right after st.set_page_config().
 
     Example:
         st.set_page_config(page_title="My App", layout="wide")
-        apply_app_theme()
+        apply_ford_theme()
     """
-    st.markdown(APP_THEME_CSS, unsafe_allow_html=True)
+    st.markdown(FORD_BLUE_CSS, unsafe_allow_html=True)
 
 
 def apply_page_config(
@@ -192,7 +193,7 @@ def apply_page_config(
     layout: str = "wide",
     initial_sidebar_state: str = "expanded",
 ) -> None:
-    """Apply the standard page configuration.
+    """Apply standard Ford page configuration.
 
     Args:
         page_title: The browser tab title.
@@ -206,14 +207,14 @@ def apply_page_config(
         layout=layout,
         initial_sidebar_state=initial_sidebar_state,
     )
-    apply_app_theme()
+    apply_ford_theme()
 
 
 # === Utility Components ===
 
 
-def render_app_header(title: str, subtitle: str | None = None, logo_path: str | None = None) -> None:
-    """Render the app header.
+def ford_header(title: str, subtitle: str | None = None, logo_path: str | None = None) -> None:
+    """Render a Ford-branded header.
 
     Args:
         title: Main header text.
@@ -235,8 +236,8 @@ def render_app_header(title: str, subtitle: str | None = None, logo_path: str | 
             st.markdown(f"*{subtitle}*")
 
 
-def render_info_box(message: str, icon: str = "ℹ️") -> None:
-    """Render an info box.
+def ford_info_box(message: str, icon: str = "ℹ️") -> None:
+    """Render a Ford-styled info box.
 
     Args:
         message: The message to display.
@@ -245,16 +246,16 @@ def render_info_box(message: str, icon: str = "ℹ️") -> None:
     st.info(f"{icon} {message}")
 
 
-def render_success_box(message: str, icon: str = "✅") -> None:
-    """Render a success box."""
+def ford_success_box(message: str, icon: str = "✅") -> None:
+    """Render a Ford-styled success box."""
     st.success(f"{icon} {message}")
 
 
-def render_warning_box(message: str, icon: str = "⚠️") -> None:
-    """Render a warning box."""
+def ford_warning_box(message: str, icon: str = "⚠️") -> None:
+    """Render a Ford-styled warning box."""
     st.warning(f"{icon} {message}")
 
 
-def render_error_box(message: str, icon: str = "❌") -> None:
-    """Render an error box."""
+def ford_error_box(message: str, icon: str = "❌") -> None:
+    """Render a Ford-styled error box."""
     st.error(f"{icon} {message}")

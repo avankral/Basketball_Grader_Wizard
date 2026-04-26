@@ -4,18 +4,14 @@
 
 ## Quick Start
 
-1. **Open in VS Code** — The workspace is configured to use `.venv` automatically.
+1. **Open in VS Code** — The `.venv` activates automatically.
 
-2. **Create or refresh the virtual environment**:
+2. **Install dependencies** (first time only):
    ```powershell
-   py -3.13 -m venv .venv
-   # If Python 3.13 is not installed, use Python 3.12 instead.
-   .venv\Scripts\python.exe -m pip install --upgrade pip
-   .venv\Scripts\python.exe -m pip install -e ".[dev]"
+   python -m venv .venv
+   .venv\Scripts\Activate.ps1
+   pip install -e ".[dev]"
    ```
-
-   If you copied or moved this project from another folder or machine, recreate `.venv` before
-   running the app. Windows virtual environments are not portable.
 
 3. **Configure environment**:
    ```powershell
@@ -25,7 +21,7 @@
 
 4. **Run the app**:
    ```powershell
-   .venv\Scripts\python.exe -m streamlit run src/app.py
+   streamlit run src/app.py
    ```
 
 ## Project Structure
@@ -39,7 +35,7 @@ Basketball Grader Wizard/
 │   └── settings.py
 ├── src/              # Application source
 │   ├── app.py        # Main Streamlit app
-│   └── styles.py     # Shared theme CSS
+│   └── styles.py     # Ford Blue theme CSS
 ├── tests/            # Pytest tests
 ├── data/             # Local data (gitignored)
 ├── assets/           # Logos, icons
@@ -61,3 +57,6 @@ ruff check --fix .
 ruff format .
 ```
 
+## Author
+
+avankral

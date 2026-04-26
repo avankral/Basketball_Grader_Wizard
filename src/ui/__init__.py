@@ -5,6 +5,7 @@ Contains reusable Streamlit components for the dashboard:
 - Metric cards
 - Charts and visualizations
 - Data views
+- Matchup recommendations
 """
 
 from src.ui.charts import (
@@ -14,6 +15,7 @@ from src.ui.charts import (
     create_win_loss_chart,
 )
 from src.ui.filters import FilterState, render_sidebar_filters
+from src.ui.matchups_view import render_matchups_panel
 from src.ui.metrics_cards import render_kpi_cards, render_team_summary_card
 from src.ui.recommendations_view import render_recommendations_panel
 from src.ui.sos_view import render_sos_analysis
@@ -32,5 +34,6 @@ __all__ = [
     "render_standings_table",
     "render_sos_analysis",
     "render_recommendations_panel",
+    "render_matchups_panel",
     "render_team_deep_dive",
 ]

@@ -32,7 +32,7 @@ from src.grading.overrides import OverrideManager
 from src.grading.recommender import RecommendationEngine
 from src.models.game_result import TeamSeason
 from src.models.recommendation import Recommendation
-from src.styles import apply_page_config, render_app_header
+from src.styles import apply_page_config, ford_header
 from src.ui.charts import (
     create_blowout_frequency_chart,
     create_margin_trend_chart,
@@ -40,8 +40,12 @@ from src.ui.charts import (
 )
 
 # Import UI components
+from src.ui.comparison_view import render_comparison_view
 from src.ui.filters import FilterState, apply_round_filter, render_sidebar_filters
+from src.ui.historical_view import render_historical_view
+from src.ui.matchups_view import render_matchups_panel
 from src.ui.metrics_cards import render_kpi_cards
+from src.ui.power_rating_view import render_power_rating_view
 from src.ui.recommendations_view import render_recommendations_panel
 from src.ui.sos_view import render_sos_analysis
 from src.ui.standings_view import render_standings_table
@@ -366,7 +370,7 @@ def render_main_content() -> None:
     """Render the main content area."""
     settings = get_settings()
 
-    render_app_header(
+    ford_header(
         title="Basketball Grader Wizard",
         subtitle="DVBA Team Grading Analysis Dashboard",
     )
@@ -379,6 +383,11 @@ def render_main_content() -> None:
     # Get filtered teams
     teams = st.session_state.teams
     recommendations = st.session_state.recommendations
+
+    # Auto-recover: recommendations empty but data is loaded (e.g. after a crash during upload)
+    if teams and not recommendations:
+        st.session_state.recommendations = generate_recommendations(teams)
+        recommendations = st.session_state.recommendations
 
     # Apply filters from sidebar
     filter_state = st.session_state.get("filter_state", FilterState())
@@ -401,12 +410,16 @@ def render_main_content() -> None:
     st.divider()
 
     # Main tabs
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs(
         [
             "📊 Standings",
             "📈 SoS Analysis",
+            "⚡ Power Ratings",
             "📋 Recommendations",
+            "📅 Matchups",
             "🔍 Team Deep Dive",
+            "🆚 Compare Teams",
+            "📜 Historical",
             "📉 Charts",
             "📤 Upload",
             "📥 Exports",
@@ -420,26 +433,38 @@ def render_main_content() -> None:
         render_sos_analysis(filtered_teams)
 
     with tab3:
-        render_recommendations_panel(filtered_recs, override_manager, filter_state.season)
+        render_power_rating_view(filtered_teams)
 
     with tab4:
+        render_recommendations_panel(filtered_recs, override_manager, filter_state.season)
+
+    with tab5:
+        render_matchups_panel(filtered_teams, filter_state.season, st.session_state.max_round)
+
+    with tab6:
         rec_dict = {r.team_name: r for r in filtered_recs}
         render_team_deep_dive(filtered_teams, rec_dict)
 
-    with tab5:
+    with tab7:
+        render_comparison_view(filtered_teams)
+
+    with tab8:
+        render_historical_view(filtered_teams, filter_state.season)
+
+    with tab9:
         render_analysis_tab(filtered_teams)
 
-    with tab6:
+    with tab10:
         render_upload_tab()
 
-    with tab7:
+    with tab11:
         render_exports_tab(filtered_teams, filtered_recs)
 
 
 def render_sidebar() -> None:
     """Render the sidebar with filters."""
     # Display logo at top of sidebar
-    logo_path = Path(__file__).parent.parent / "assets" / "Specter Basketball Management.png"
+    logo_path = Path(__file__).parent.parent / "assets" / "Specter_Basketball_Management_2.png"
     if logo_path.exists():
         st.sidebar.image(str(logo_path), width="stretch")
 

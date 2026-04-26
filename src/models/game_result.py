@@ -22,17 +22,24 @@ class Gender(str, Enum):
 class Grade(str, Enum):
     """Basketball grade levels in hierarchical order.
 
-    Ordered from highest (A) to lowest (D).
-    B1, B2, B3 exist to avoid negative connotations of grades below D.
+    Ordered from highest (A) to lowest (D3).
+    Multiple tiers within each letter grade for finer granularity.
+    AR (At Risk) is a special designation for teams being monitored.
     """
 
     A = "A"
+    AR = "AR"  # At Risk - teams being monitored for regrading
     B1 = "B1"
     B2 = "B2"
     B3 = "B3"
+    B4 = "B4"
     C1 = "C1"
     C2 = "C2"
+    C3 = "C3"
     D = "D"
+    D1 = "D1"
+    D2 = "D2"
+    D3 = "D3"
 
     @classmethod
     def from_string(cls, value: str) -> Grade | None:
@@ -67,16 +74,22 @@ class Grade(str, Enum):
         """Numeric rank for comparison (lower = better).
 
         Returns:
-            Integer rank: A=1, B1=2, B2=3, B3=4, C1=5, C2=6, D=7
+            Integer rank from 1 (highest) to 13 (lowest).
         """
         rank_map = {
             Grade.A: 1,
-            Grade.B1: 2,
-            Grade.B2: 3,
-            Grade.B3: 4,
-            Grade.C1: 5,
-            Grade.C2: 6,
-            Grade.D: 7,
+            Grade.AR: 2,  # Between A and B1
+            Grade.B1: 3,
+            Grade.B2: 4,
+            Grade.B3: 5,
+            Grade.B4: 6,
+            Grade.C1: 7,
+            Grade.C2: 8,
+            Grade.C3: 9,
+            Grade.D: 10,
+            Grade.D1: 11,
+            Grade.D2: 12,
+            Grade.D3: 13,
         }
         return rank_map[self]
 
@@ -222,6 +235,22 @@ class GameResult(BaseModel):
     def is_close_game(self) -> bool:
         """Check if game was close (<=5 point margin)."""
         return abs(self.margin) <= 5
+
+    @property
+    def variance_percentage(self) -> float:
+        """Calculate variance as percentage of total points.
+
+        This metric normalizes the margin across different score ranges,
+        making a 20-point win in a 40-30 game (66.7%) different from
+        a 20-point win in an 80-60 game (33.3%).
+
+        Returns:
+            Variance percentage (0-100). Returns 0 if no points scored.
+        """
+        total_points = self.score_for + self.score_against
+        if total_points == 0:
+            return 0.0
+        return abs(self.margin) / total_points * 100
 
     model_config = ConfigDict(use_enum_values=True)
 

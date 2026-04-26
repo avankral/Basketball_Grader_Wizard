@@ -12,7 +12,7 @@ for parent communication and DVBA appeals.
 
 from __future__ import annotations
 
-from src.grading.grades import can_demote, can_promote, grade_above, grade_below
+from src.grading.grades import GRADE_ORDER, can_demote, can_promote, grade_above, grade_below
 from src.grading.metrics import (
     BLOWOUT_MARGIN,
     MIN_GAMES_FOR_RECOMMENDATION,
@@ -148,6 +148,7 @@ class RecommendationEngine:
                 concerns=concerns,
                 sos=sos,
                 transitive_chains=transitive_chains,
+                all_teams=all_teams,
             )
 
         # Check for grade coverage issues (never played at assigned grade)
@@ -172,6 +173,7 @@ class RecommendationEngine:
                 concerns=concerns,
                 sos=sos,
                 transitive_chains=transitive_chains,
+                all_teams=all_teams,
             )
 
         # Check for transitive variance concerns
@@ -183,7 +185,11 @@ class RecommendationEngine:
 
         # Determine recommendation based on metrics
         rec_type, confidence, explanation = self._evaluate_metrics(
-            team, metrics, sos, transitive_chains
+            team,
+            metrics,
+            sos,
+            transitive_chains,
+            all_teams,
         )
 
         return self._create_recommendation(
@@ -195,7 +201,55 @@ class RecommendationEngine:
             concerns=concerns,
             sos=sos,
             transitive_chains=transitive_chains,
+            all_teams=all_teams,
         )
+
+    def _get_adjacent_existing_grade(
+        self,
+        team: TeamSeason,
+        all_teams: list[TeamSeason] | None,
+        direction: str,
+    ) -> Grade | None:
+        """Get the next existing grade within the same age and gender cohort.
+
+        Args:
+            team: Team being analyzed.
+            all_teams: All teams in the current dataset.
+            direction: Movement direction, either "promote" or "demote".
+
+        Returns:
+            Closest existing grade in the requested direction, or None.
+        """
+        grade = _ensure_grade_enum(team.assigned_grade)
+        if grade is None:
+            return None
+
+        if not all_teams:
+            return grade_above(grade) if direction == "promote" else grade_below(grade)
+
+        cohort_grades = {
+            cohort_grade
+            for other_team in all_teams
+            if other_team.gender == team.gender and other_team.age_group == team.age_group
+            for cohort_grade in [_ensure_grade_enum(other_team.assigned_grade)]
+            if cohort_grade is not None
+        }
+
+        if not cohort_grades:
+            return grade_above(grade) if direction == "promote" else grade_below(grade)
+
+        start_index = GRADE_ORDER.index(grade)
+        if direction == "promote":
+            candidate_indexes = range(start_index - 1, -1, -1)
+        else:
+            candidate_indexes = range(start_index + 1, len(GRADE_ORDER))
+
+        for candidate_index in candidate_indexes:
+            candidate_grade = GRADE_ORDER[candidate_index]
+            if candidate_grade in cohort_grades:
+                return candidate_grade
+
+        return None
 
     def _evaluate_metrics(
         self,
@@ -203,6 +257,7 @@ class RecommendationEngine:
         metrics: TeamMetrics,
         sos: StrengthOfSchedule,
         transitive_chains: list[TransitiveChain],
+        all_teams: list[TeamSeason] | None,
     ) -> tuple[RecommendationType, Confidence, str]:
         """Evaluate metrics and determine recommendation type.
 
@@ -220,7 +275,14 @@ class RecommendationEngine:
 
         # PROMOTE: Dominating current grade
         if metrics.is_dominant and grade and can_promote(grade):
-            new_grade = grade_above(grade)
+            new_grade = self._get_adjacent_existing_grade(team, all_teams, "promote")
+            if new_grade is None:
+                return (
+                    RecommendationType.NO_CHANGE,
+                    Confidence.MEDIUM,
+                    f"{team.team_name} is performing strongly at {grade_str} grade, but there is "
+                    "no higher existing grade in this age/gender cohort. No grade change recommended.",
+                )
             new_grade_str = _get_grade_value(new_grade)
             confidence = Confidence.HIGH if metrics.blowout_wins >= 4 else Confidence.MEDIUM
 
@@ -234,7 +296,14 @@ class RecommendationEngine:
 
         # DEMOTE: Struggling at current grade
         if metrics.is_struggling and grade and can_demote(grade):
-            new_grade = grade_below(grade)
+            new_grade = self._get_adjacent_existing_grade(team, all_teams, "demote")
+            if new_grade is None:
+                return (
+                    RecommendationType.NO_CHANGE,
+                    Confidence.MEDIUM,
+                    f"{team.team_name} is struggling at {grade_str} grade, but there is no lower "
+                    "existing grade in this age/gender cohort. No grade change recommended.",
+                )
             new_grade_str = _get_grade_value(new_grade)
             confidence = Confidence.HIGH if metrics.blowout_losses >= 4 else Confidence.MEDIUM
 
@@ -286,6 +355,7 @@ class RecommendationEngine:
         concerns: list[str],
         sos: StrengthOfSchedule,
         transitive_chains: list[TransitiveChain],
+        all_teams: list[TeamSeason] | None,
     ) -> Recommendation:
         """Create a Recommendation object with all details.
 
@@ -307,10 +377,10 @@ class RecommendationEngine:
 
         grade_enum = _ensure_grade_enum(team.assigned_grade)
         if rec_type == RecommendationType.PROMOTE and grade_enum:
-            new_grade = grade_above(grade_enum)
+            new_grade = self._get_adjacent_existing_grade(team, all_teams, "promote")
             recommended_grade = _get_grade_value(new_grade)
         elif rec_type == RecommendationType.DEMOTE and grade_enum:
-            new_grade = grade_below(grade_enum)
+            new_grade = self._get_adjacent_existing_grade(team, all_teams, "demote")
             recommended_grade = _get_grade_value(new_grade)
 
         # Build SoS note

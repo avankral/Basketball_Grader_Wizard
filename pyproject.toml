@@ -3,9 +3,11 @@ name = "basketball_grader_wizard"
 version = "0.1.0"
 description = "This project ingests weekly basketball results in xls format and coverts it into actionable recommendations for grading of basketball teams for boys and girls across multiple age levels it should be in a dashboard and have tables it should assess the data every week and provide recommendations for which teams show move up or go down a grade based on fairness this should be a profressional looking app and it is ok to to search the public internat for similar applications it should be feature rich"
 requires-python = ">=3.12,<3.14"
+authors = [{ name = "avankral" }]
 readme = "README.md"
 
 dependencies = [
+    "flask>=3.0.0",
     "python-dotenv>=1.0.0",
     "streamlit>=1.30.0",
     "plotly>=5.18.0",
@@ -13,6 +15,7 @@ dependencies = [
     "pyarrow>=14.0.0",
     "openpyxl>=3.1.0",
     "pydantic>=2.0.0",
+    "pyinstaller>=6.0.0",
 ]
 
 [project.optional-dependencies]

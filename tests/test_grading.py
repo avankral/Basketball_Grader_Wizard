@@ -24,6 +24,7 @@ from src.grading.grades import (
     is_playing_up,
 )
 from src.grading.metrics import calculate_team_metrics
+from src.grading.power_rating import calculate_power_ratings
 from src.grading.recommender import RecommendationEngine
 from src.grading.strength_of_schedule import calculate_sos
 from src.grading.transitive import TransitiveChain, TransitiveLink, find_transitive_chains
@@ -48,38 +49,42 @@ class TestGradeHierarchy:
     def test_grade_order(self):
         """Test that grades are ordered correctly."""
         assert GRADE_ORDER[0] == Grade.A
-        assert GRADE_ORDER[-1] == Grade.D
-        assert len(GRADE_ORDER) == 7
+        assert GRADE_ORDER[-1] == Grade.D3
+        assert len(GRADE_ORDER) == 13
 
     def test_grade_rank(self):
         """Test grade rank mapping."""
         assert GRADE_RANK[Grade.A] == 1
-        assert GRADE_RANK[Grade.D] == 7
+        assert GRADE_RANK[Grade.D] == 10
+        assert GRADE_RANK[Grade.D3] == 13
         assert GRADE_RANK[Grade.B1] < GRADE_RANK[Grade.B2]
 
     def test_grade_distance(self):
         """Test grade distance calculation."""
         assert grade_distance(Grade.A, Grade.A) == 0
-        assert grade_distance(Grade.A, Grade.B1) == 1
-        assert grade_distance(Grade.A, Grade.D) == 6
-        assert grade_distance(Grade.C1, Grade.B1) == 3
+        assert grade_distance(Grade.A, Grade.AR) == 1
+        assert grade_distance(Grade.A, Grade.B1) == 2  # A -> AR -> B1
+        assert grade_distance(Grade.A, Grade.D) == 9
+        assert grade_distance(Grade.C1, Grade.B1) == 4
 
     def test_grade_above(self):
         """Test getting grade above."""
-        assert grade_above(Grade.B1) == Grade.A
-        assert grade_above(Grade.D) == Grade.C2
+        assert grade_above(Grade.B1) == Grade.AR
+        assert grade_above(Grade.AR) == Grade.A
+        assert grade_above(Grade.D) == Grade.C3
         assert grade_above(Grade.A) is None
 
     def test_grade_below(self):
         """Test getting grade below."""
-        assert grade_below(Grade.A) == Grade.B1
-        assert grade_below(Grade.C2) == Grade.D
-        assert grade_below(Grade.D) is None
+        assert grade_below(Grade.A) == Grade.AR
+        assert grade_below(Grade.AR) == Grade.B1
+        assert grade_below(Grade.C2) == Grade.C3
+        assert grade_below(Grade.D3) is None
 
     def test_grades_between(self):
         """Test grades between two grades."""
         between = grades_between(Grade.A, Grade.C1)
-        assert between == [Grade.B1, Grade.B2, Grade.B3]
+        assert between == [Grade.AR, Grade.B1, Grade.B2, Grade.B3, Grade.B4]
 
         between = grades_between(Grade.B1, Grade.B2)
         assert between == []
@@ -94,7 +99,8 @@ class TestGradeHierarchy:
         """Test demotion eligibility."""
         assert can_demote(Grade.A) is True
         assert can_demote(Grade.B1) is True
-        assert can_demote(Grade.D) is False
+        assert can_demote(Grade.D) is True  # D is no longer the lowest grade
+        assert can_demote(Grade.D3) is False  # D3 is the lowest grade
 
     def test_is_playing_up(self):
         """Test playing up detection."""
@@ -478,12 +484,102 @@ class TestRecommendationEngine:
         engine: RecommendationEngine,
         promote_candidate: TeamSeason,
     ):
-        """Test promotion recommendation."""
+        """Test fallback promotion recommendation without cohort context."""
         rec = engine.generate_recommendation(promote_candidate)
 
         assert rec.recommendation_type == RecommendationType.PROMOTE
-        assert rec.recommended_grade == "A"
+        assert rec.recommended_grade == "AR"
         assert rec.confidence in (Confidence.HIGH, Confidence.MEDIUM)
+
+    def test_promote_recommendation_uses_next_existing_cohort_grade(
+        self,
+        engine: RecommendationEngine,
+        promote_candidate: TeamSeason,
+    ):
+        """Promotion should skip missing cohort grades like AR when absent."""
+        promote_candidate = promote_candidate.model_copy(
+            update={"team_name": "Jets U10 Boys 2", "age_group": 10}
+        )
+        cohort_teams = [
+            promote_candidate,
+            TeamSeason(
+                team_name="Jets U10 Boys 1",
+                gender=Gender.BOYS,
+                age_group=10,
+                division=1,
+                assigned_grade=Grade.A,
+                games=promote_candidate.games,
+                sheet_name="B101",
+            ),
+            TeamSeason(
+                team_name="Jets U10 Boys 3",
+                gender=Gender.BOYS,
+                age_group=10,
+                division=2,
+                assigned_grade=Grade.B2,
+                games=promote_candidate.games,
+                sheet_name="B102",
+            ),
+        ]
+
+        rec = engine.generate_recommendation(promote_candidate, cohort_teams)
+
+        assert rec.recommendation_type == RecommendationType.PROMOTE
+        assert rec.recommended_grade == "A"
+
+
+class TestPowerRatings:
+    """Tests for power-rating grade suggestions."""
+
+    def test_suggested_grade_uses_existing_cohort_grades(self):
+        """Suggested grades should skip missing cohort grades like AR."""
+        dominant_games = [
+            GameResult(
+                team_name="Jets U10 Boys 2",
+                opponent_name=f"Opp {i}",
+                opponent_grade=Grade.B1,
+                score_for=70,
+                score_against=45,
+                margin=25,
+                result=ResultType.WON,
+                round_num=i,
+            )
+            for i in range(1, 5)
+        ]
+
+        teams = [
+            TeamSeason(
+                team_name="Jets U10 Boys 2",
+                gender=Gender.BOYS,
+                age_group=10,
+                division=1,
+                assigned_grade=Grade.B1,
+                games=dominant_games,
+                sheet_name="B101",
+            ),
+            TeamSeason(
+                team_name="Jets U10 Boys 1",
+                gender=Gender.BOYS,
+                age_group=10,
+                division=1,
+                assigned_grade=Grade.A,
+                games=[],
+                sheet_name="B101",
+            ),
+            TeamSeason(
+                team_name="Jets U10 Boys 3",
+                gender=Gender.BOYS,
+                age_group=10,
+                division=2,
+                assigned_grade=Grade.B2,
+                games=[],
+                sheet_name="B102",
+            ),
+        ]
+
+        ratings = calculate_power_ratings(teams)
+
+        assert ratings["Jets U10 Boys 2"].suggested_grade == Grade.A
 
     def test_demote_recommendation(
         self,
@@ -565,7 +661,59 @@ class TestRecommendationEngine:
 
         rec = engine.generate_recommendation(team)
 
-        assert rec.recommendation_type in (
-            RecommendationType.NO_CHANGE,
-            RecommendationType.MONITOR,
-        )
+        assert rec.recommendation_type == RecommendationType.NO_CHANGE
+        assert rec.confidence == Confidence.HIGH
+
+
+class TestPowerRatings:
+    """Tests for power-rating grade suggestions."""
+
+    def test_suggested_grade_uses_existing_cohort_grades(self):
+        """Suggested grades should skip missing cohort grades like AR."""
+        dominant_games = [
+            GameResult(
+                team_name="Jets U10 Boys 2",
+                opponent_name=f"Opp {i}",
+                opponent_grade=Grade.B1,
+                score_for=70,
+                score_against=45,
+                margin=25,
+                result=ResultType.WON,
+                round_num=i,
+            )
+            for i in range(1, 5)
+        ]
+
+        teams = [
+            TeamSeason(
+                team_name="Jets U10 Boys 2",
+                gender=Gender.BOYS,
+                age_group=10,
+                division=1,
+                assigned_grade=Grade.B1,
+                games=dominant_games,
+                sheet_name="B101",
+            ),
+            TeamSeason(
+                team_name="Jets U10 Boys 1",
+                gender=Gender.BOYS,
+                age_group=10,
+                division=1,
+                assigned_grade=Grade.A,
+                games=[],
+                sheet_name="B101",
+            ),
+            TeamSeason(
+                team_name="Jets U10 Boys 3",
+                gender=Gender.BOYS,
+                age_group=10,
+                division=2,
+                assigned_grade=Grade.B2,
+                games=[],
+                sheet_name="B102",
+            ),
+        ]
+
+        ratings = calculate_power_ratings(teams)
+
+        assert ratings["Jets U10 Boys 2"].suggested_grade == Grade.A

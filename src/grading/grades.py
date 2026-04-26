@@ -8,15 +8,21 @@ from __future__ import annotations
 
 from src.models.game_result import Grade
 
-# Ordered list of grades from highest (A) to lowest (D)
+# Ordered list of grades from highest (A) to lowest (D3)
 GRADE_ORDER: list[Grade] = [
     Grade.A,
+    Grade.AR,
     Grade.B1,
     Grade.B2,
     Grade.B3,
+    Grade.B4,
     Grade.C1,
     Grade.C2,
+    Grade.C3,
     Grade.D,
+    Grade.D1,
+    Grade.D2,
+    Grade.D3,
 ]
 
 # Numeric rank mapping (lower = better)
@@ -120,9 +126,9 @@ def can_demote(grade: Grade) -> bool:
         grade: Current grade.
 
     Returns:
-        True if grade is not already at bottom (D).
+        True if grade is not already at bottom (D3).
     """
-    return grade != Grade.D
+    return grade != GRADE_ORDER[-1]  # Not at the lowest grade
 
 
 def is_playing_up(team_grade: Grade, opponent_grade: Grade) -> bool:
