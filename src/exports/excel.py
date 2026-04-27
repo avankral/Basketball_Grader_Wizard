@@ -14,6 +14,7 @@ from pathlib import Path
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils import get_column_letter
 from openpyxl.utils.dataframe import dataframe_to_rows
 
 from src.grading.metrics import calculate_team_metrics
@@ -128,9 +129,9 @@ def export_standings_excel(
                     )
 
     # Auto-fit columns
-    for column in ws.columns:
+    for col_idx, column in enumerate(ws.columns, 1):
         max_length = 0
-        column_letter = column[0].column_letter
+        column_letter = get_column_letter(col_idx)
         for cell in column:
             try:
                 if len(str(cell.value)) > max_length:
@@ -226,9 +227,9 @@ def export_recommendations_excel(
             )
 
     # Auto-fit columns
-    for column in ws.columns:
+    for col_idx, column in enumerate(ws.columns, 1):
         max_length = 0
-        column_letter = column[0].column_letter
+        column_letter = get_column_letter(col_idx)
         for cell in column:
             try:
                 if len(str(cell.value)) > max_length:
@@ -447,9 +448,9 @@ def export_matchups_excel(
                     cell.fill = light_fill
 
         # Auto-fit columns
-        for column in ws.columns:
+        for col_idx, column in enumerate(ws.columns, 1):
             max_length = 0
-            column_letter = column[0].column_letter
+            column_letter = get_column_letter(col_idx)
             for cell in column:
                 try:
                     if len(str(cell.value)) > max_length:
